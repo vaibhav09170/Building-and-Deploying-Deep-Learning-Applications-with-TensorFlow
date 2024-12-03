@@ -135,6 +135,31 @@ with tf.device('/CPU:0'):
         SavePath = saver.save(session, "model/trainedModel.ckpt") 
         print(f"model saved : {SavePath}")
         
+        model_builder = tf.compat.v1.saved_model.builder.SavedModelBuilder("exported_model")
+
+        inputs = {
+            'input': tf.compat.v1.saved_model.utils.build_tensor_info(X)
+            }
+        outputs = {
+            'earnings': tf.compat.v1.saved_model.utils.build_tensor_info(prediction)
+            }
+
+        signature_def = tf.compat.v1.saved_model.signature_def_utils.build_signature_def(
+            inputs=inputs,
+            outputs=outputs,
+            method_name=tf.compat.v1.saved_model.signature_constants.PREDICT_METHOD_NAME
+        )
+
+        model_builder.add_meta_graph_and_variables(
+            session,
+            tags=[tf.compat.v1.saved_model.tag_constants.SERVING],
+            signature_def_map={
+                tf.compat.v1.saved_model.signature_constants.DEFAULT_SERVING_SIGNATURE_DEF_KEY: signature_def
+            }
+        )
+
+        model_builder.save()
+
         
         
         
